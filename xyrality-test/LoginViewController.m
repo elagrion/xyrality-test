@@ -8,6 +8,7 @@
 
 #import "LoginViewController.h"
 #import "Backend.h"
+#import "GameWorldsTableViewController.h"
 
 @interface LoginViewController ()
 
@@ -25,16 +26,24 @@
 }
 
 - (IBAction)doAuth:(id)sender {
-    NSString *login =  @"ios.test@xyrality.com"; //self.loginField.text;
-    NSString *password = @"password"; //self.passwordField.text;
+    NSString *login =  self.loginField.text;
+    NSString *password = self.passwordField.text;
     [self.backend requestGameWorldsWithLogin:login password:password completion:^(NSData *data) {
-        NSString* response = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        NSLog(@"response: %@", response);
+        [self showGameWorldsListViewControllerWithWorlds:[self processResponse:data]];
     }];
 }
 
-- (void)showWorldListViewController {
+- (void)showGameWorldsListViewControllerWithWorlds:(NSArray *)gameWorlds {
+    UIStoryboard *mainStoryboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    GameWorldsTableViewController *gameWorldsViewController = [mainStoryboard instantiateViewControllerWithIdentifier:@"GameWorldsTableViewController"];
+    gameWorldsViewController.gameWorlds  = gameWorlds;
+    [self showViewController:gameWorldsViewController sender:nil];
+}
 
+- (NSArray *)processResponse:(NSData* )data {
+    NSDictionary* dict = [NSPropertyListSerialization propertyListWithData:data options:0 format:nil error:nil];
+    NSArray *gameWorlds = [dict[@"allAvailableWorlds"] valueForKey:@"name"];
+    return gameWorlds;
 }
 
 @end

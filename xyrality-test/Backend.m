@@ -13,7 +13,7 @@ static NSString* GameWorldsRequestURLString = @"http://backend1.lordsandknights.
 @implementation Backend
 
 - (void)requestGameWorldsWithLogin:(NSString *)login password:(NSString *)password completion:(void (^)(NSData* data))completionBlock {
-    NSURLSession *session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:nil delegateQueue:[NSOperationQueue mainQueue]];
 
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:self.gameWorldsRequestURL];
     request.HTTPMethod = @"POST";
