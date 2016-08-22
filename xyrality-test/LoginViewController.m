@@ -28,11 +28,19 @@
 - (IBAction)doAuth:(id)sender {
     NSString *login =  self.loginField.text;
     NSString *password = self.passwordField.text;
-    [self.backend requestGameWorldsWithLogin:login password:password success:^(NSArray *worlds) {
-        [self showGameWorldsListViewControllerWithWorlds:worlds];
-    } failure:^(NSError *error) {
-        [self showError:error];
-    }];
+
+    if ([login length] > 0) {
+        [self.backend requestGameWorldsWithLogin:login password:password success:^(NSArray *worlds) {
+            [self showGameWorldsListViewControllerWithWorlds:worlds];
+        } failure:^(NSError *error) {
+            [self showErrorWithMessage:error.localizedDescription];
+        }];
+
+        self.passwordField.text = @"";
+    }
+    else {
+        [self showErrorWithMessage:@"Login is empty"];
+    }
 }
 
 - (void)showGameWorldsListViewControllerWithWorlds:(NSArray *)gameWorlds {
@@ -42,9 +50,9 @@
     [self showViewController:gameWorldsViewController sender:nil];
 }
 
-- (void)showError:(NSError *)error {
+- (void)showErrorWithMessage:(NSString *)message {
     UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Oh Snap!"
-                                                                   message:error.localizedDescription
+                                                                   message:message
                                                             preferredStyle:UIAlertControllerStyleAlert];
 
     UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleDefault
