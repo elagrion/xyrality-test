@@ -10,18 +10,45 @@
 
 static NSString* GameWorldsRequestURLString = @"http://backend1.lordsandknights.com/XYRALITY/WebObjects/BKLoginServer.woa/wa/worlds";
 
+
+@interface Backend()
+
+@property (strong) NSURLSession *session;
+
+@end
+
 @implementation Backend
 
-- (void)requestGameWorldsWithLogin:(NSString *)login password:(NSString *)password completion:(void (^)(NSData* data))completionBlock {
-    NSURLSession *session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:nil delegateQueue:[NSOperationQueue mainQueue]];
+- (instancetype)init {
+    self = [super init];
+    if (self != nil) {
+        _session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
+    }
+    return self;
+}
 
+- (void)requestGameWorldsWithLogin:(NSString *)login password:(NSString *)password success:(void (^)(NSArray* worlds))successBlock failure:(void (^)(NSError* error))failureBlock {
+    
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:self.gameWorldsRequestURL];
     request.HTTPMethod = @"POST";
     request.HTTPBody = [self gameWorldsRequestBodyWithLogin:login password:password];
 
-    NSURLSessionDataTask *task = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-        if (error == nil && completionBlock != nil) {
-            completionBlock(data);
+    NSURLSessionDataTask *task = [self.session dataTaskWithRequest:request
+                                                 completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        if (error == nil) {
+            if (successBlock != nil) {
+                NSArray *worlds = [self processGamesWorldResponse:data];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    successBlock(worlds);
+                });
+            }
+        }
+        else {
+            if (failureBlock != nil) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    failureBlock(error);
+                });
+            }
         }
     }];
 
@@ -49,5 +76,12 @@ static NSString* GameWorldsRequestURLString = @"http://backend1.lordsandknights.
 
     return [requestBody copy];
 }
+
+- (NSArray *)processGamesWorldResponse:(NSData* )data {
+    NSDictionary* dict = [NSPropertyListSerialization propertyListWithData:data options:0 format:nil error:nil];
+    NSArray *gameWorlds = [dict[@"allAvailableWorlds"] valueForKey:@"name"];
+    return gameWorlds;
+}
+
 
 @end

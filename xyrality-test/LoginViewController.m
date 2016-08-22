@@ -28,8 +28,10 @@
 - (IBAction)doAuth:(id)sender {
     NSString *login =  self.loginField.text;
     NSString *password = self.passwordField.text;
-    [self.backend requestGameWorldsWithLogin:login password:password completion:^(NSData *data) {
-        [self showGameWorldsListViewControllerWithWorlds:[self processResponse:data]];
+    [self.backend requestGameWorldsWithLogin:login password:password success:^(NSArray *worlds) {
+        [self showGameWorldsListViewControllerWithWorlds:worlds];
+    } failure:^(NSError *error) {
+        [self showError:error];
     }];
 }
 
@@ -40,10 +42,17 @@
     [self showViewController:gameWorldsViewController sender:nil];
 }
 
-- (NSArray *)processResponse:(NSData* )data {
-    NSDictionary* dict = [NSPropertyListSerialization propertyListWithData:data options:0 format:nil error:nil];
-    NSArray *gameWorlds = [dict[@"allAvailableWorlds"] valueForKey:@"name"];
-    return gameWorlds;
-}
+- (void)showError:(NSError *)error {
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Oh Snap!"
+                                                                   message:error.localizedDescription
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+
+    UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleDefault
+                                                          handler:^(UIAlertAction * action) {
+                                                              [alert dismissViewControllerAnimated:YES completion:nil];
+                                                          }];
+    
+    [alert addAction:defaultAction];
+    [self presentViewController:alert animated:YES completion:nil];}
 
 @end

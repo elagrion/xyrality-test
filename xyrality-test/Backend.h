@@ -10,6 +10,6 @@
 
 @interface Backend : NSObject
 
-- (void)requestGameWorldsWithLogin:(NSString *)login password:(NSString *)password completion:(void (^__nullable)(NSData *data))completionBlock;
+- (void)requestGameWorldsWithLogin:(NSString *)login password:(NSString *)password success:(void (^)(NSArray* worlds))successBlock failure:(void (^)(NSError* error))failureBlock;
 
 @end
